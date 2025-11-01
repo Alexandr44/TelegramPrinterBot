@@ -140,16 +140,19 @@ class PrinterCommandHandler(
         when (text) {
 
             Constants.ONE_PER_PAGE -> {
+                userService.setUserPageLayout(userId, PageLayout.ONE)
                 val msg = SendMessage(chatId.toString(), "Выбрана печать 1 страница на 1")
                 execute(msg)
             }
 
             Constants.TWO_PER_PAGE -> {
+                userService.setUserPageLayout(userId, PageLayout.TWO)
                 val msg = SendMessage(chatId.toString(), "Выбрана печать 2 страницы на 1")
                 execute(msg)
             }
 
             Constants.FOUR_PER_PAGE -> {
+                userService.setUserPageLayout(userId, PageLayout.FOUR)
                 val msg = SendMessage(chatId.toString(), "Выбрана печать 4 страницы на 1")
                 execute(msg)
             }
