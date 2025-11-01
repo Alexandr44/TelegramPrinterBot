@@ -20,6 +20,9 @@ class UserServiceImpl(
     }
 
     override fun setUserPageLayout(userId: Long, pageLayout: PageLayout) {
+        if (!userPreferencesMap.containsKey(userId)) {
+            userPreferencesMap[userId] = buildDefaultPreferences()
+        }
         userPreferencesMap[userId]?.pageLayout = pageLayout
     }
 
@@ -36,5 +39,9 @@ class UserServiceImpl(
             userStateMap[userId] = UserState.OK
         }
         return userStateMap[userId]!!
+    }
+
+    fun buildDefaultPreferences(): UserPreference {
+        return UserPreference(PageLayout.ONE)
     }
 }
