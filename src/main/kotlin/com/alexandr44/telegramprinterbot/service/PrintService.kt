@@ -1,6 +1,6 @@
 package com.alexandr44.telegramprinterbot.service
 
-import com.alexandr44.telegramprinterbot.PageLayout
+import com.alexandr44.telegramprinterbot.enums.PageLayout
 
 interface PrintService {
 

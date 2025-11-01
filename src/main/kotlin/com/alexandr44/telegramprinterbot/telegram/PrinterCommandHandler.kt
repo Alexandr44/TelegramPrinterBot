@@ -1,7 +1,8 @@
 package com.alexandr44.telegramprinterbot.telegram
 
-import com.alexandr44.telegramprinterbot.PageLayout
 import com.alexandr44.telegramprinterbot.dto.Constants
+import com.alexandr44.telegramprinterbot.enums.PageLayout
+import com.alexandr44.telegramprinterbot.enums.UserState
 import com.alexandr44.telegramprinterbot.service.PrintService
 import com.alexandr44.telegramprinterbot.service.UserService
 import mu.KotlinLogging
@@ -44,25 +45,24 @@ class PrinterCommandHandler(
             handleReplyMessage(text, execute)
         } else {
             if (!handleMenuButtons(text, chatId, userId, execute)) {
-//                val availableRequests = bloggerSubscriptionService.getAvailableRequests(userId)
-//                    ?: bloggerSubscriptionService.addFreeUser(userId).requestsLeft
-//
-//                if (availableRequests > 0) {
-//                    val msg = SendMessage(
-//                        chatId.toString(),
-//                        handleStateMessage(
-//                            message
-//                        ) { sendMessage: SendMessage -> execute(sendMessage) }
-//                    )
-//                    execute(msg)
-//                    bloggerSubscriptionService.decreaseRequest(userId)
-//                } else {
-//                    val msg = SendMessage(
-//                        userId.toString(),
-//                        "Закончились доступные запросы на генерацию! Нужно оплатить новые"
-//                    )
-//                    execute(msg)
-//                }
+                when(userService.getUserState(userId)) {
+                    UserState.OK -> execute(SendMessage(chatId.toString(), "Ничего не знаю, файл давай"))
+                    UserState.SUPPORT_MESSAGE -> {
+                        val supportMsg = """
+                            🆘 Новое сообщение от пользователя:
+                            👤 ID: %d
+                            🔗 @%s
+                            💬 %s
+                            """.trimIndent().format(userId, message.from.userName ?: "без username", text)
+
+                        val toSupport = SendMessage()
+                        toSupport.chatId = supportChatId
+                        toSupport.text = supportMsg
+                        execute.invoke(toSupport)
+                        userService.setUserState(userId, UserState.OK)
+                        execute(SendMessage(chatId.toString(), "✅ Сообщение отправлено в поддержку. Спасибо!"))
+                    }
+                }
             }
         }
     }
@@ -163,7 +163,7 @@ class PrinterCommandHandler(
                         |Мы ответим вам как можно скорее.
                         """.trimMargin()
                 val msg = SendMessage(chatId.toString(), str)
-//                bloggerStateService.addState(userId, BloggerUserState.AWAITING_SUPPORT_MESSAGE)
+                userService.setUserState(userId, UserState.SUPPORT_MESSAGE)
                 execute(msg)
             }
 
