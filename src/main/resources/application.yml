@@ -2,10 +2,16 @@ spring:
   application:
     name: TelegramPrinterBot
 
-telegrambots:
+telegrambot:
   enabled: true
-  bots:
+  bot:
     username: HomePrinterBot
     token: "8438331015:AAF6eWXQU3htN4Kr4ybYjCjUcgzpS-b0BY4"
     support_chat_id: "-4986887147"
   print_script_path: /app/print.sh
+  users:
+    user-ids:
+      - 142878491   # I
+      - 174019988   # Nailya
+      - 6382656994  # Radmila
+      - 5404529998  # Darina

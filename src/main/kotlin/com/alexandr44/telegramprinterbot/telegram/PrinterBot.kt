@@ -12,7 +12,7 @@ class PrinterBot(
     private val handler: PrinterCommandHandler,
 ) : TelegramLongPollingBot("8438331015:AAF6eWXQU3htN4Kr4ybYjCjUcgzpS-b0BY4") {
 
-    @Value("\${telegrambots.bots.username}")
+    @Value("\${telegrambot.bot.username}")
     private lateinit var botUsername: String
 
     override fun getBotUsername() = botUsername

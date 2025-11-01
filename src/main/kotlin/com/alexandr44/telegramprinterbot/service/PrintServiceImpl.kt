@@ -14,7 +14,7 @@ import kotlin.io.path.deleteIfExists
 @Service
 class PrintServiceImpl : PrintService {
 
-    @Value("\${telegrambots.print_script_path}")
+    @Value("\${telegrambot.print_script_path}")
     private lateinit var printScriptPath: String
 
     override fun printDocument(fileUrl: String, fileName: String, pageLayout: PageLayout) {

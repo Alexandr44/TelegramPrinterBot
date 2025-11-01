@@ -3,6 +3,7 @@ package com.alexandr44.telegramprinterbot.telegram
 import com.alexandr44.telegramprinterbot.PageLayout
 import com.alexandr44.telegramprinterbot.dto.Constants
 import com.alexandr44.telegramprinterbot.service.PrintService
+import com.alexandr44.telegramprinterbot.service.UserService
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -17,21 +18,32 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException
 @Service
 class PrinterCommandHandler(
     val menuBuilder: PrinterBotMenuBuilder,
-    val printService: PrintService
+    val printService: PrintService,
+    val userService: UserService,
 ) {
 
     private val log = KotlinLogging.logger {}
 
-    @Value("\${telegrambots.bots.support_chat_id}")
+    @Value("\${telegrambot.bot.support_chat_id}")
     private lateinit var supportChatId: String
 
-    @Value("\${telegrambots.bots.token}")
+    @Value("\${telegrambot.bot.token}")
     private lateinit var botToken: String
 
     fun handleTextMessage(message: Message, execute: (BotApiMethodMessage) -> Message) {
         val chatId: Long = message.chatId
         val text: String = message.text
         val userId: Long = message.from.id
+
+        if (!userService.checkUsername(userId)) {
+            execute(
+                SendMessage(
+                    chatId.toString(),
+                    "Добро пожаловать! К сожалению вы не в списке доступных пользователей"
+                )
+            )
+            return
+        }
 
         if (text == "/start") {
             val msg = SendMessage(chatId.toString(), "Добро пожаловать! Пришлите мне файлик и я его распечатаю")
@@ -79,7 +91,13 @@ class PrinterCommandHandler(
         downloadAndPrint(msg, fileId, fileName, fileExecutor, messageSender)
     }
 
-    private fun downloadAndPrint(msg: Message, fileId: String, fileName: String, fileExecutor: (GetFile) -> File, messageSender: (BotApiMethodMessage) -> Message) {
+    private fun downloadAndPrint(
+        msg: Message,
+        fileId: String,
+        fileName: String,
+        fileExecutor: (GetFile) -> File,
+        messageSender: (BotApiMethodMessage) -> Message
+    ) {
         try {
             // Скачиваем файл
             val getFile = GetFile(fileId)
@@ -170,7 +188,6 @@ class PrinterCommandHandler(
         }
         return true
     }
-
 
 
 }
