@@ -35,16 +35,6 @@ class PrinterCommandHandler(
         val text: String = message.text
         val userId: Long = message.from.id
 
-        if (!userService.checkUsername(userId)) {
-            execute(
-                SendMessage(
-                    chatId.toString(),
-                    "Добро пожаловать! К сожалению вы не в списке доступных пользователей"
-                )
-            )
-            return
-        }
-
         if (text == "/start") {
             val msg = SendMessage(chatId.toString(), "Добро пожаловать! Пришлите мне файлик и я его распечатаю")
             msg.replyMarkup = menuBuilder.mainMenu()
@@ -81,35 +71,36 @@ class PrinterCommandHandler(
         val doc = msg.document
         val fileId = doc.fileId
         val fileName = doc.fileName
-        downloadAndPrint(msg, fileId, fileName, fileExecutor, messageSender)
+        val resultMessage = downloadAndPrint(fileId, fileName, userService.getUserPageLayout(msg.from.id), fileExecutor)
+        messageSender.invoke(buildMessage(msg.chatId, resultMessage))
     }
 
     fun handlePhoto(msg: Message, fileExecutor: (GetFile) -> File, messageSender: (BotApiMethodMessage) -> Message) {
         val photo = msg.photo[msg.photo.size - 1]
         val fileId = photo.fileId
         val fileName = "photo_" + System.currentTimeMillis() + ".jpg"
-        downloadAndPrint(msg, fileId, fileName, fileExecutor, messageSender)
+        val resultMessage = downloadAndPrint(fileId, fileName, userService.getUserPageLayout(msg.from.id), fileExecutor)
+        messageSender.invoke(buildMessage(msg.chatId, resultMessage))
     }
 
     private fun downloadAndPrint(
-        msg: Message,
         fileId: String,
         fileName: String,
+        pageLayout: PageLayout,
         fileExecutor: (GetFile) -> File,
-        messageSender: (BotApiMethodMessage) -> Message
-    ) {
+    ): String {
         try {
             // Скачиваем файл
             val getFile = GetFile(fileId)
             val file: File = fileExecutor.invoke(getFile)
             val fileUrl = file.getFileUrl(botToken)
 
-            printService.printDocument(fileUrl, fileName, PageLayout.ONE)
+            printService.printDocument(fileUrl, fileName, pageLayout)
 
-            messageSender.invoke(buildMessage(msg.chatId, "✅ Отправлено на печать"))
+            return "✅ Отправлено на печать"
         } catch (e: java.lang.Exception) {
             e.printStackTrace()
-            messageSender.invoke(buildMessage(msg.chatId, "❌ Ошибка при печати: " + e.message))
+            return "❌ Ошибка при печати: " + e.message
         }
     }
 
